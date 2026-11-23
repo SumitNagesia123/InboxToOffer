@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # App Settings
-    PROJECT_NAME: str = "AI Job Email Intelligence System"
+    PROJECT_NAME: str = "InboxToOffer"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: str = "development"
@@ -43,8 +43,13 @@ class Settings(BaseSettings):
     SMTP_FROM_NAME: str = "AI Job Intelligence"
     SMTP_TLS: bool = True
 
-    # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
+    # CORS — extend via CORS_ORIGINS env var in production
+    CORS_ORIGINS: List[str] = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://inboxtooffer.vercel.app",
+        "https://*.vercel.app",
+    ]
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -66,6 +66,12 @@ def create_application() -> FastAPI:
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
     app.add_exception_handler(Exception, generic_exception_handler)
 
+    # Health check endpoint (used by Railway)
+    @app.get("/health", tags=["Health"])
+    def health_check():
+        """Railway / uptime health check."""
+        return {"status": "ok", "version": settings.VERSION}
+
     # Mount API Routers
     app.include_router(api_router, prefix=settings.API_V1_STR)
 
