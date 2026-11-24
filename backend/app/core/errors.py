@@ -89,8 +89,8 @@ def create_error_response(
     status_code: int,
     details: Optional[Any] = None,
 ) -> JSONResponse:
-    """Builds a standardized error envelope JSONResponse."""
-    return JSONResponse(
+    """Builds a standardized error envelope JSONResponse with explicit CORS headers."""
+    response = JSONResponse(
         status_code=status_code,
         content={
             "success": False,
@@ -101,6 +101,11 @@ def create_error_response(
             },
         },
     )
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
 
 
 async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
