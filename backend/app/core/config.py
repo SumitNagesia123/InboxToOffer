@@ -28,7 +28,12 @@ class Settings(BaseSettings):
                 if parsed.port:
                     netloc += f":{parsed.port}"
                 parsed = parsed._replace(netloc=netloc)
-                return urlunparse(parsed)
+                v = urlunparse(parsed)
+
+            # Ensure Supabase connections use sslmode=require
+            if 'supabase.co' in v and 'sslmode' not in v:
+                separator = '&' if '?' in v else '?'
+                v = f"{v}{separator}sslmode=require"
         except Exception:
             pass
         return v
