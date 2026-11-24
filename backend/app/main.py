@@ -24,11 +24,17 @@ async def lifespan(app: FastAPI):
     """Application lifespan context for startup and shutdown procedures."""
     logger.info("Starting up %s (version %s, env: %s)...", settings.PROJECT_NAME, settings.VERSION, settings.ENVIRONMENT)
 
-    # Verify database connectivity and run migrations on startup
+    # Verify database connectivity and create tables on startup
     db = SessionLocal()
     try:
         db.execute(text("SELECT 1"))
         logger.info("Database connectivity established successfully.")
+
+        # Ensure database tables exist via SQLAlchemy Base metadata
+        from app.database.session import engine
+        from app.database.base import Base
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables verified/created successfully.")
 
         # Run Alembic migrations automatically with robust path resolution
         import os
