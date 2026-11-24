@@ -24,13 +24,29 @@ async def lifespan(app: FastAPI):
     """Application lifespan context for startup and shutdown procedures."""
     logger.info("Starting up %s (version %s, env: %s)...", settings.PROJECT_NAME, settings.VERSION, settings.ENVIRONMENT)
 
-    # Verify database connectivity on startup
+    # Verify database connectivity and run migrations on startup
     db = SessionLocal()
     try:
         db.execute(text("SELECT 1"))
         logger.info("Database connectivity established successfully.")
+
+        # Run Alembic migrations automatically with robust path resolution
+        import os
+        from alembic.config import Config
+        from alembic import command
+
+        current_dir = os.path.dirname(os.path.abspath(__file__)) # app
+        backend_dir = os.path.dirname(current_dir) # backend
+        ini_path = os.path.join(backend_dir, "alembic.ini")
+        if not os.path.exists(ini_path):
+            ini_path = "alembic.ini"
+
+        alembic_cfg = Config(ini_path)
+        alembic_cfg.set_main_option("script_location", os.path.join(backend_dir, "alembic"))
+        command.upgrade(alembic_cfg, "head")
+        logger.info("Alembic database migrations applied successfully.")
     except Exception as e:
-        logger.error("Database connectivity failed on startup: %s", str(e))
+        logger.error("Database initialization/migration failed on startup: %s", str(e))
     finally:
         db.close()
 
