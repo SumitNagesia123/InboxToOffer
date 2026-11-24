@@ -57,12 +57,10 @@ def quick_login(
     db: Session = Depends(get_db),
 ):
     from app.core.security import hash_password
-    from app.models.preference import UserPreference
 
     email = req.email.strip().lower()
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        # Auto-create demo user if not found so quick-login never fails on live demo/resume
         user = User(
             email=email,
             hashed_password=hash_password("password123"),
@@ -71,15 +69,6 @@ def quick_login(
             is_superuser=False,
         )
         db.add(user)
-        db.flush()
-
-        default_pref = UserPreference(
-            user_id=user.id,
-            digest_enabled=True,
-            digest_time="22:00",
-            preferred_work_modes=["REMOTE", "HYBRID"],
-        )
-        db.add(default_pref)
         db.commit()
         db.refresh(user)
 
