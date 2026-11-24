@@ -48,7 +48,8 @@ class Settings(BaseSettings):
         "http://localhost:5173",
         "http://localhost:3000",
         "https://inboxtooffer.vercel.app",
-        "https://*.vercel.app",
+        "https://inbox-to-offer-frontend.vercel.app",
+        "*",
     ]
 
     model_config = SettingsConfigDict(
