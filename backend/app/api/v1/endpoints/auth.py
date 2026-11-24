@@ -56,10 +56,33 @@ def quick_login(
     req: QuickLoginRequest,
     db: Session = Depends(get_db),
 ):
-    from app.core.errors import AuthenticationError
-    user = db.query(User).filter(User.email == req.email.strip().lower()).first()
+    from app.core.security import hash_password
+    from app.models.preference import UserPreference
+
+    email = req.email.strip().lower()
+    user = db.query(User).filter(User.email == email).first()
     if not user:
-        raise AuthenticationError("User with this email not found")
+        # Auto-create demo user if not found so quick-login never fails on live demo/resume
+        user = User(
+            email=email,
+            hashed_password=hash_password("password123"),
+            full_name="Demo User",
+            is_active=True,
+            is_superuser=False,
+        )
+        db.add(user)
+        db.flush()
+
+        default_pref = UserPreference(
+            user_id=user.id,
+            digest_enabled=True,
+            digest_time="22:00",
+            preferred_work_modes=["REMOTE", "HYBRID"],
+        )
+        db.add(default_pref)
+        db.commit()
+        db.refresh(user)
+
     return auth_service.create_token_response(user=user)
 
 
