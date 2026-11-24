@@ -2,9 +2,8 @@
  * API Client with JWT authorization and standardized error handling.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api/v1`
-  : '/api/v1';
+const rawApiUrl = import.meta.env.VITE_API_URL || '/api/v1';
+const BASE_URL = rawApiUrl.endsWith('/api/v1') ? rawApiUrl : `${rawApiUrl.replace(/\/$/, '')}/api/v1`;
 
 
 export interface ApiError {
