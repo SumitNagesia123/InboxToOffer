@@ -14,6 +14,25 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5433/aijob_db"
 
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_db_connection(cls, v: Union[str, None]) -> str:
+        if not v:
+            return "postgresql://postgres:postgres@localhost:5433/aijob_db"
+        try:
+            from urllib.parse import urlparse, urlunparse, quote_plus
+            parsed = urlparse(v)
+            if parsed.password and '@' in parsed.password:
+                encoded_password = quote_plus(parsed.password)
+                netloc = f"{parsed.username}:{encoded_password}@{parsed.hostname}"
+                if parsed.port:
+                    netloc += f":{parsed.port}"
+                parsed = parsed._replace(netloc=netloc)
+                return urlunparse(parsed)
+        except Exception:
+            pass
+        return v
+
     # Security
     SECRET_KEY: str = "default_secret_key_minimum_32_characters_long_for_dev_purposes"
     ALGORITHM: str = "HS256"
