@@ -17,9 +17,12 @@ class Settings(BaseSettings):
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def assemble_db_connection(cls, v: Union[str, None]) -> str:
-        if not v:
-            return "postgresql://postgres:postgres@localhost:5433/aijob_db"
+        if not v or not str(v).strip():
+            return "sqlite:///./inboxtooffer.db"
+        v = str(v).strip()
         try:
+            if "sqlite" in v.lower():
+                return v
             from urllib.parse import urlparse, urlunparse, quote_plus
             parsed = urlparse(v)
             if parsed.password and '@' in parsed.password:
@@ -30,7 +33,6 @@ class Settings(BaseSettings):
                 parsed = parsed._replace(netloc=netloc)
                 v = urlunparse(parsed)
 
-            # Ensure Supabase connections use sslmode=require
             if 'supabase.co' in v and 'sslmode' not in v:
                 separator = '&' if '?' in v else '?'
                 v = f"{v}{separator}sslmode=require"
