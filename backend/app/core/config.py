@@ -1,5 +1,6 @@
+import os
 from typing import List, Union
-from pydantic import AnyHttpUrl, field_validator
+from pydantic import AnyHttpUrl, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -62,9 +63,9 @@ class Settings(BaseSettings):
     OAUTH_ENCRYPTION_KEY: str = "56rBqXcgHLfzbSx6AdEXLLEACCJqrpBrLqQ54YI0Les="
 
     # Google OAuth
-    GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
-    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/gmail/callback"
+    GOOGLE_CLIENT_ID: str = Field(default_factory=lambda: os.getenv("GOOGLE_CLIENT_ID", ""))
+    GOOGLE_CLIENT_SECRET: str = Field(default_factory=lambda: os.getenv("GOOGLE_CLIENT_SECRET", ""))
+    GOOGLE_REDIRECT_URI: str = Field(default_factory=lambda: os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/v1/gmail/callback"))
 
     # AI / LLM
     LLM_PROVIDER: str = "gemini"
