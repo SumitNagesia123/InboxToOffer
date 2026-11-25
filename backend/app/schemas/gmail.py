@@ -37,18 +37,11 @@ class GmailStatusResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     connected: bool = Field(..., description="Whether user has connected an active Gmail account")
-    is_connected: bool = False
+    is_connected: bool = Field(default=False, description="Whether user has connected an active Gmail account")
     provider: str = "google"
     client_id: Optional[str] = None
     scopes: List[str] = Field(default_factory=list)
     expires_at: Optional[datetime] = None
-
-    def __init__(self, **data):
-        if "connected" in data and "is_connected" not in data:
-            data["is_connected"] = data["connected"]
-        elif "is_connected" in data and "connected" not in data:
-            data["connected"] = data["is_connected"]
-        super().__init__(**data)
 
 
 class GmailDisconnectResponse(BaseModel):

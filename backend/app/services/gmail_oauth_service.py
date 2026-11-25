@@ -160,11 +160,12 @@ class GmailOAuthService:
         """Returns the current connection state of user's Gmail account."""
         oauth_record = db.scalar(select(OAuthCredential).where(OAuthCredential.user_id == user.id))
         if not oauth_record:
-            return GmailStatusResponse(connected=False, scopes=[])
+            return GmailStatusResponse(connected=False, is_connected=False, scopes=[])
 
         scopes_list = [s.strip() for s in oauth_record.scopes.split() if s.strip()]
         return GmailStatusResponse(
             connected=True,
+            is_connected=True,
             provider=oauth_record.provider or "google",
             client_id=oauth_record.client_id,
             scopes=scopes_list,
