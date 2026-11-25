@@ -108,8 +108,13 @@ def create_application() -> FastAPI:
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
     app.add_exception_handler(Exception, generic_exception_handler)
 
-    # Health check endpoint (used by Railway)
+    # Health check endpoints (supporting GET, HEAD, POST, with and without trailing slash)
     @app.get("/health", tags=["Health"])
+    @app.get("/health/", tags=["Health"])
+    @app.head("/health", tags=["Health"])
+    @app.head("/health/", tags=["Health"])
+    @app.post("/health", tags=["Health"])
+    @app.post("/health/", tags=["Health"])
     def health_check():
         """Railway / uptime health check."""
         return {"status": "ok", "version": settings.VERSION}

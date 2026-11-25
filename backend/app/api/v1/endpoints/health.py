@@ -10,14 +10,7 @@ from app.core.logging import logger
 router = APIRouter()
 
 
-@router.get(
-    "/health",
-    summary="Health Check",
-    description="Check the operational health of the backend API and database connectivity.",
-    tags=["Health"],
-)
-def health_check(db: Session = Depends(get_db)):
-    """Verifies API status and database connectivity."""
+def _run_health_check(db: Session):
     db_status = "disconnected"
     is_healthy = False
 
@@ -42,3 +35,19 @@ def health_check(db: Session = Depends(get_db)):
         return JSONResponse(status_code=status.HTTP_200_OK, content=payload)
     else:
         return JSONResponse(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, content=payload)
+
+
+@router.get(
+    "/health",
+    summary="Health Check",
+    description="Check the operational health of the backend API and database connectivity.",
+    tags=["Health"],
+)
+@router.get("/health/")
+@router.head("/health")
+@router.head("/health/")
+@router.post("/health")
+@router.post("/health/")
+def health_check(db: Session = Depends(get_db)):
+    """Verifies API status and database connectivity."""
+    return _run_health_check(db)
