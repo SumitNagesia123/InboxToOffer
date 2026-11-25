@@ -1,7 +1,13 @@
 from dataclasses import dataclass
 from typing import List, Optional, Set, Tuple
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+
+# Optional sklearn import with graceful fallback
+try:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
 
 from app.core.logging import logger
 
@@ -124,11 +130,18 @@ class MatchingEngine:
         matched_title_tokens = [t for t in title_tokens if t in resume_text.lower()]
         title_factor = (len(matched_title_tokens) / len(title_tokens)) if title_tokens else 0.8
 
-        # TF-IDF Cosine Similarity
+        # TF-IDF Cosine Similarity with fallback
+        sim = 0.4
         try:
-            vectorizer = TfidfVectorizer(stop_words="english", max_features=350)
-            tfidf = vectorizer.fit_transform([job_content, resume_text])
-            sim = float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
+            if SKLEARN_AVAILABLE:
+                vectorizer = TfidfVectorizer(stop_words="english", max_features=350)
+                tfidf = vectorizer.fit_transform([job_content, resume_text])
+                sim = float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
+            else:
+                tokens_j = set(job_content.lower().split())
+                tokens_r = set(resume_text.lower().split())
+                if tokens_j and tokens_r:
+                    sim = len(tokens_j.intersection(tokens_r)) / len(tokens_j.union(tokens_r))
         except Exception as e:
             logger.debug("TF-IDF similarity calculation exception: %s", str(e))
             sim = 0.4
