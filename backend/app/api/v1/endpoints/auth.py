@@ -4,6 +4,7 @@ from sqlalchemy import select
 from datetime import datetime
 from app.api.deps import get_current_user, get_db
 from app.models.user import User
+from app.core.config import settings
 from app.schemas.auth import (
     TokenResponse,
     UserLoginRequest,
