@@ -17,6 +17,10 @@ pinned: false
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Tests](https://img.shields.io/badge/tests-104%20passing-brightgreen)
+![Status](https://img.shields.io/badge/status-Live%2024%2F7-success)
+
+> 🚀 **Live Demo:** [https://inbox-to-offer-frontend.vercel.app](https://inbox-to-offer-frontend.vercel.app)  
+> 📚 **API Documentation:** [https://inboxtooffer.onrender.com/docs](https://inboxtooffer.onrender.com/docs)
 
 ---
 
