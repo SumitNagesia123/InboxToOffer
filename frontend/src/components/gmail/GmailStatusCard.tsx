@@ -134,16 +134,19 @@ export const GmailStatusCard: React.FC<GmailStatusCardProps> = ({
   };
 
   const handleSaveOAuth = async () => {
-    if (!clientId.trim() || !clientSecret.trim()) {
-      alert('Please provide both Client ID and Client Secret.');
-      return;
-    }
     setIsSavingOAuth(true);
     try {
-      await api.post('/gmail/configure-oauth', {
-        client_id: clientId.trim(),
-        client_secret: clientSecret.trim(),
-      });
+      if (clientId.trim() && clientSecret.trim()) {
+        try {
+          await api.post('/gmail/configure-oauth', {
+            client_id: clientId.trim(),
+            client_secret: clientSecret.trim(),
+          });
+        } catch (e) {
+          // Ignore read-only file system write errors on cloud hosts
+        }
+      }
+
       const res = await api.get<{
         authorization_url: string;
         state: string;
@@ -154,10 +157,10 @@ export const GmailStatusCard: React.FC<GmailStatusCardProps> = ({
         sessionStorage.setItem('gmail_oauth_state', res.state);
         window.location.href = res.authorization_url;
       } else {
-        alert('Credentials saved. Please click Connect to authenticate with Google.');
+        alert('OAuth not configured. Please ensure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set in your Render environment variables.');
       }
     } catch (err: any) {
-      alert(`Failed to configure OAuth: ${err.message}`);
+      alert(`Failed to connect Google OAuth: ${err.message}`);
     } finally {
       setIsSavingOAuth(false);
     }
