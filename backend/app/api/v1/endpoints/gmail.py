@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
@@ -13,6 +14,7 @@ from app.schemas.gmail import (
     GmailAppPasswordConnectRequest,
     GmailAppPasswordConnectResponse,
 )
+from app.schemas.email import SyncRequest
 from app.core.config import settings
 from app.services.gmail_oauth_service import gmail_oauth_service
 
@@ -86,12 +88,15 @@ def oauth_callback_post(
     description="Fetches recent job emails from Gmail account.",
 )
 def sync_gmail(
+    req: Optional[SyncRequest] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Trigger manual Gmail synchronization."""
+    max_results = req.max_results if req else 50
+    query_override = req.query_override if req else None
     from app.services.email.ingestion_service import email_ingestion_service
-    return email_ingestion_service.sync_user_emails(db=db, user=current_user)
+    return email_ingestion_service.sync_user_emails(db=db, user=current_user, max_results=max_results, query_override=query_override)
 
 
 @router.get(
