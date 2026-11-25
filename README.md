@@ -1,226 +1,164 @@
----
-title: InboxToOffer AI Platform
-emoji: 📬
-colorFrom: blue
-colorTo: indigo
-sdk: docker
-pinned: false
----
-
 # InboxToOffer
 
-> AI-powered job email tracker that turns your Gmail inbox into a structured job search pipeline — for developers and job seekers who hate spreadsheets.
+> AI-powered job intelligence dashboard that turns your inbox into a structured job pipeline: it extracts job emails, removes duplicates, matches roles to your resume, and tracks applications.
 
-![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?logo=fastapi&logoColor=white)
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Tests](https://img.shields.io/badge/tests-104%20passing-brightgreen)
-![Status](https://img.shields.io/badge/status-Live%2024%2F7-success)
+[Live Demo](https://inbox-to-offer-frontend.vercel.app) · [API Docs](https://inboxtooffer.onrender.com/docs) · [Report a Bug](https://github.com/SumitNagesia123/InboxToOffer/issues)
 
-> 🚀 **Live Demo:** [https://inbox-to-offer-frontend.vercel.app](https://inbox-to-offer-frontend.vercel.app)  
-> 📚 **API Documentation:** [https://inboxtooffer.onrender.com/docs](https://inboxtooffer.onrender.com/docs)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688)
+![React](https://img.shields.io/badge/React-Vite-61DAFB)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-3ECF8E)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
 ## Table of Contents
-- [About](#about)
+- [Overview](#overview)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
 - [Getting Started](#getting-started)
-- [Usage](#usage)
+- [Environment Variables](#environment-variables)
+- [Deployment](#deployment)
+- [API Overview](#api-overview)
 - [Project Structure](#project-structure)
-- [Testing](#testing)
 - [Roadmap](#roadmap)
-- [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
 
----
+## Overview
+Job hunting floods your inbox with alerts from many sources. InboxToOffer connects to Gmail, ingests those emails, uses AI to extract structured job data, filters duplicates, scores each role against your resume, and shows everything on one dashboard.
 
-## About
-
-Job seekers receive dozens of recruiter emails every week but have no structured way to track them. Manually copying details into spreadsheets is tedious, error-prone, and unsustainable.
-
-**InboxToOffer** connects to your Gmail account via OAuth, automatically ingests job-related emails, scores each opportunity against your resume using an AI matching engine, and surfaces the best matches in a clean dashboard. It then tracks every application through the entire pipeline — from first email to final offer — so nothing falls through the cracks.
-
----
+**Problem:** job emails are scattered, repetitive, and hard to compare.
+**Solution:** one pipeline that ingests, parses, de-duplicates, matches, and tracks.
 
 ## Features
-
-- **Gmail OAuth & IMAP Integration** — Secure incremental email sync using `X-GM-RAW` search filters with rate limiting and retry backoff
-- **AI Triage Engine** — Automatically filters out non-job noise (e-commerce, promotions, alerts) before anything hits your database
-- **Resume Matching & Scoring** — Multi-factor scoring (skills, experience level, semantic relevance) with natural-language explanations for every match
-- **Application Pipeline** — Full lifecycle tracking across `Applied`, `Interviewing`, `Offer`, `Rejected`, and `Withdrawn` stages
-- **Daily Digest** — Automated summaries of your top daily opportunities and upcoming interview schedules
-- **Multi-tenant Auth** — JWT-based authentication with per-user data isolation and Fernet-encrypted OAuth token storage
-
----
+- **Gmail sync:** ingests job-related emails via Google OAuth.
+- **AI parsing & triage:** extracts title, company, skills, and location while filtering out non-job noise.
+- **Duplicate filtering:** merges repeated postings across sources using heuristic & semantic matching.
+- **Resume matching:** compatibility score with a skill-by-skill breakdown and explainable scoring.
+- **Application tracking:** pipeline view from applied to interview/offer.
+- **Analytics and executive digest:** summary metrics and daily report.
+- **Auth:** JWT-based login, registration, and secure token storage.
 
 ## Tech Stack
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, Vite, TypeScript, Tailwind CSS |
+| Backend | Python 3.11, FastAPI, SQLAlchemy 2.0, Alembic |
+| Database | PostgreSQL (Supabase) |
+| AI / NLP | Sentence Transformers, TF-IDF / Cosine Similarity |
+| Auth | JWT (PyJWT), bcrypt, Google OAuth 2.0 |
+| Hosting | Vercel (frontend), Render (backend) |
 
-**Backend:** Python 3.11 · FastAPI · SQLAlchemy 2.0 · Alembic · PostgreSQL  
-**Frontend:** React 18 · TypeScript · Vite · Tailwind CSS  
-**AI/ML:** Sentence Transformers · scikit-learn  
-**Auth & Security:** JWT · bcrypt · Fernet encryption · Google OAuth 2.0  
-**DevOps:** Docker (multi-stage build)
-
----
+## Architecture
+```
+Gmail ──► Backend (FastAPI) ──► AI parser ──► PostgreSQL (Supabase)
+                 ▲                                   │
+                 └──────────── React dashboard ◄─────┘
+```
 
 ## Getting Started
 
 ### Prerequisites
 - Python 3.11+
 - Node.js 18+
-- PostgreSQL 14+
-- A Google Cloud project with Gmail API enabled (for OAuth)
+- PostgreSQL database (Supabase)
+- Google Cloud project with Gmail API enabled
 
-### Installation
-
+### 1. Clone
 ```bash
 git clone https://github.com/SumitNagesia123/InboxToOffer.git
 cd InboxToOffer
+```
 
-# Backend
+### 2. Backend
+```bash
 cd backend
-python -m venv venv
-venv\Scripts\activate          # Windows
-# source venv/bin/activate     # macOS / Linux
+python -m venv .venv
+.venv\Scripts\activate           # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-
-# Frontend
-cd ../frontend
-npm install
+cp .env.example .env             # Fill in your DATABASE_URL and keys
+uvicorn app.main:app --reload
 ```
+API runs at `http://localhost:8000` (docs at `/docs`).
 
-### Configuration
-
-Copy `.env.example` to `.env` inside the `backend/` folder and fill in the values:
-
-```
-DATABASE_URL=postgresql://user:password@localhost:5432/inboxtooffer
-SECRET_KEY=<64-character random hex string>
-OAUTH_ENCRYPTION_KEY=<32-byte Fernet key>
-ENVIRONMENT=development
-GOOGLE_CLIENT_ID=<your Google OAuth client ID>
-GOOGLE_CLIENT_SECRET=<your Google OAuth client secret>
-```
-
-> ⚠️ Never commit `.env` or any secrets. The `.gitignore` already excludes it.
-
-Run database migrations:
-
-```bash
-cd backend
-alembic upgrade head
-```
-
----
-
-## Usage
-
-**Start the backend:**
-```bash
-cd backend
-uvicorn app.main:app --reload --port 8000
-```
-
-**Start the frontend:**
+### 3. Frontend
 ```bash
 cd frontend
+npm install
 npm run dev
-# App runs at http://localhost:5173
 ```
+App runs at `http://localhost:5173`.
 
-**Or run with Docker (production):**
-```bash
-docker build -t inboxtooffer .
-docker run -p 8000:8000 \
-  -e DATABASE_URL=postgresql://user:pass@host/db \
-  -e SECRET_KEY=your_secret \
-  -e OAUTH_ENCRYPTION_KEY=your_fernet_key \
-  inboxtooffer
-```
+## Environment Variables
 
-Once running: register an account → connect your Gmail via OAuth → upload your resume → let the AI find and score your job opportunities.
+**Backend (`backend/.env`)**
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string (Supabase) |
+| `SECRET_KEY` | Random secret string used to sign JWTs |
+| `ENVIRONMENT` | `development` or `production` |
+| `CORS_ORIGINS` | Allowed frontend URL(s) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth credentials |
 
----
+**Frontend (`frontend/.env`)**
+| Variable | Description |
+|---|---|
+| `VITE_API_URL` | Backend base URL (e.g., `https://inboxtooffer.onrender.com/api/v1`) |
+
+> Never commit `.env` files or real secrets.
+
+## Deployment
+- **Database:** Supabase (PostgreSQL managed DB with pre-configured schema tables).
+- **Backend:** Render web service (Python runtime, `uvicorn app.main:app --host 0.0.0.0 --port $PORT`).
+- **Frontend:** Vercel static site deployment with SPA rewrites.
+- **24/7 Keep-Alive:** UptimeRobot configured to ping `https://inboxtooffer.onrender.com/health` every 5 minutes.
+
+## API Overview
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/v1/auth/register` | Create account |
+| POST | `/api/v1/auth/login` | Log in |
+| POST | `/api/v1/auth/quick-login` | Quick demo session login |
+| GET | `/api/v1/jobs` | List extracted jobs |
+| GET | `/api/v1/matches` | Resume-matched jobs |
+| GET | `/api/v1/applications` | Application pipeline |
+
+Full interactive docs: [API Docs](https://inboxtooffer.onrender.com/docs).
 
 ## Project Structure
-
 ```
 InboxToOffer/
 ├── backend/
 │   ├── app/
-│   │   ├── api/            REST endpoints (auth, emails, matches, applications)
-│   │   ├── core/           Config, security, encryption, logging
-│   │   ├── database/       Session management and base model
-│   │   ├── models/         SQLAlchemy ORM models
-│   │   ├── schemas/        Pydantic request/response schemas
-│   │   └── services/       Business logic (ingestion, triage, matching, digest)
-│   ├── alembic/            Database migrations
-│   ├── tests/              104 unit & integration tests
+│   │   ├── api/v1/endpoints/    REST endpoints (auth, jobs, matches, apps)
+│   │   ├── core/                Config, security, encryption, logging
+│   │   ├── database/            Session management & base model
+│   │   ├── models/              SQLAlchemy ORM models
+│   │   ├── schemas/             Pydantic request/response schemas
+│   │   └── services/            Ingestion, triage, matching engine
+│   ├── alembic/                 Database migrations
 │   └── requirements.txt
 ├── frontend/
 │   └── src/
-│       ├── api/            API client
-│       ├── components/     Reusable UI components
-│       ├── context/        Auth and theme contexts
-│       └── pages/          Dashboard, Emails, Matches, Applications, Analytics
-├── docs/                   Architecture and database schema docs
-├── Dockerfile              Multi-stage production container
+│       ├── api/                 API client
+│       ├── components/          UI components
+│       └── pages/               Dashboard, Matches, Applications, etc.
 └── README.md
 ```
 
----
-
-## Testing
-
-```bash
-cd backend
-pytest tests/ -v
-```
-
-104 tests covering auth, email ingestion, triage classification, job extraction, resume parsing, duplicate detection, matching engine, analytics, and API endpoints — all passing.
-
----
-
 ## Roadmap
-
-- [x] Gmail OAuth & IMAP incremental sync
-- [x] AI triage engine with reject logging
-- [x] Resume upload and parsing
-- [x] Multi-factor job-resume matching with explainability
-- [x] Application pipeline (Applied → Offer)
-- [x] Daily digest and analytics dashboard
-- [x] Production Docker container
+- [x] Gmail OAuth & IMAP sync
+- [x] AI triage & job extraction
+- [x] Resume matching & explainability
+- [x] Application pipeline tracking
+- [x] Production deployment on Render & Vercel
 - [ ] Outlook / Yahoo Mail support
 - [ ] Browser extension for one-click apply tracking
-- [ ] Mobile-responsive PWA
-- [ ] Interview scheduler with calendar integration
-
----
-
-## Contributing
-
-1. Fork the repo
-2. Create a branch: `git checkout -b feature/my-feature`
-3. Commit your changes: `git commit -m "feat: add my feature"`
-4. Push to your branch: `git push origin feature/my-feature`
-5. Open a Pull Request
-
-Please follow conventional commit messages (`feat:`, `fix:`, `docs:`, etc.) and include tests for any new functionality.
-
----
 
 ## License
-
 Distributed under the MIT License. See `LICENSE` for details.
 
----
-
 ## Contact
-
-**Sumit Nagesia** · [GitHub @SumitNagesia123](https://github.com/SumitNagesia123) · [InboxToOffer](https://github.com/SumitNagesia123/InboxToOffer)
-
+Sumit Nagesia · [LinkedIn](https://linkedin.com/in/sumit-nagesia) · sumitnagesia826@gmail.com
