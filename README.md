@@ -1,3 +1,12 @@
+---
+title: InboxToOffer AI Platform
+emoji: 📬
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # InboxToOffer
 
 > AI-powered job email tracker that turns your Gmail inbox into a structured job search pipeline — for developers and job seekers who hate spreadsheets.

@@ -1,4 +1,23 @@
 import os
+# Fix unescaped password special characters and enforce SSL mode in environment variable before config loads
+if "DATABASE_URL" in os.environ:
+    try:
+        from urllib.parse import urlparse, urlunparse, quote_plus
+        db_url = os.environ["DATABASE_URL"]
+        p = urlparse(db_url)
+        if p.password and "@" in p.password:
+            netloc = f"{p.username}:{quote_plus(p.password)}@{p.hostname}"
+            if p.port:
+                netloc += f":{p.port}"
+            p = p._replace(netloc=netloc)
+            db_url = urlunparse(p)
+        if "supabase.co" in db_url and "sslmode" not in db_url:
+            sep = "&" if "?" in db_url else "?"
+            db_url += f"{sep}sslmode=require"
+        os.environ["DATABASE_URL"] = db_url
+    except Exception:
+        pass
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
