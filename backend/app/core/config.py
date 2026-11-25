@@ -24,6 +24,8 @@ class Settings(BaseSettings):
             if "sqlite" in v.lower():
                 return v
             from urllib.parse import urlparse, urlunparse, quote_plus
+            import socket
+
             parsed = urlparse(v)
             if parsed.password and '@' in parsed.password:
                 encoded_password = quote_plus(parsed.password)
@@ -32,6 +34,19 @@ class Settings(BaseSettings):
                     netloc += f":{parsed.port}"
                 parsed = parsed._replace(netloc=netloc)
                 v = urlunparse(parsed)
+                parsed = urlparse(v)
+
+            # Force IPv4 resolution for Supabase to prevent IPv6 unreachable errors on Render
+            if parsed.hostname and not parsed.hostname.replace('.', '').isdigit():
+                try:
+                    addrs = socket.getaddrinfo(parsed.hostname, parsed.port or 5432, socket.AF_INET, socket.SOCK_STREAM)
+                    if addrs:
+                        ipv4 = addrs[0][4][0]
+                        netloc = parsed.netloc.replace(parsed.hostname, ipv4)
+                        parsed = parsed._replace(netloc=netloc)
+                        v = urlunparse(parsed)
+                except Exception:
+                    pass
 
             if 'supabase.co' in v and 'sslmode' not in v:
                 separator = '&' if '?' in v else '?'
