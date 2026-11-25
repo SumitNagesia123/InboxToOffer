@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.core.email_filter_config import build_x_gm_raw_query
 from app.core.encryption import decrypt_token, encrypt_token
-from app.core.errors import AppException, AuthenticationError, ValidationError
+from app.core.errors import AppException, AuthenticationError, ValidationError, BadRequestError
 from app.core.logging import logger
 from app.models.email import Email
 from app.models.oauth import OAuthCredential
@@ -62,7 +62,7 @@ class GmailImapService:
             return True
         except imaplib.IMAP4.error as e:
             logger.error("Gmail IMAP auth error for %s: %s", user_email, str(e))
-            raise AuthenticationError(
+            raise BadRequestError(
                 "Gmail authentication failed. Please make sure you are using a 16-character Google App Password (not your normal Google account password)."
             )
         except Exception as e:
