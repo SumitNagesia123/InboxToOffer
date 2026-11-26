@@ -52,8 +52,7 @@ def oauth_callback_get(
     """Handles OAuth callback via GET redirect by decoding user from state token."""
     import jwt
     import uuid
-    from app.core.errors import AuthenticationError
-    from fastapi.responses import RedirectResponse
+    from fastapi.responses import JSONResponse, RedirectResponse
 
     try:
         payload = jwt.decode(state, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -61,21 +60,29 @@ def oauth_callback_get(
         user_uuid = uuid.UUID(user_id_str)
         user = db.get(User, user_uuid)
         if not user:
-            raise AuthenticationError("User not found from OAuth state")
+            return JSONResponse(status_code=400, content={"success": False, "error": {"message": "User not found from OAuth state"}})
+
+        gmail_oauth_service.handle_oauth_callback(
+            db=db,
+            user=user,
+            code=code,
+            state=state,
+        )
+
+        frontend_url = "https://inbox-to-offer-frontend.vercel.app"
+        return RedirectResponse(url=f"{frontend_url}/emails?gmail_connected=true")
     except Exception as e:
-        logger.error("OAuth state decode failed on callback: %s", str(e))
-        raise AuthenticationError(f"Invalid or expired OAuth state: {str(e)}")
-
-    gmail_oauth_service.handle_oauth_callback(
-        db=db,
-        user=user,
-        code=code,
-        state=state,
-    )
-
-    # Redirect back to frontend dashboard
-    frontend_url = "https://inbox-to-offer-frontend.vercel.app"
-    return RedirectResponse(url=f"{frontend_url}/emails?gmail_connected=true")
+        logger.exception("OAuth callback failed: %s", str(e))
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "error": {
+                    "code": "OAUTH_CALLBACK_ERROR",
+                    "message": str(e),
+                },
+            },
+        )
 
 
 @router.post(
