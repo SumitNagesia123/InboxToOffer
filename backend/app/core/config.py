@@ -65,7 +65,14 @@ class Settings(BaseSettings):
     # Google OAuth
     GOOGLE_CLIENT_ID: str = Field(default_factory=lambda: os.getenv("GOOGLE_CLIENT_ID", ""))
     GOOGLE_CLIENT_SECRET: str = Field(default_factory=lambda: os.getenv("GOOGLE_CLIENT_SECRET", ""))
-    GOOGLE_REDIRECT_URI: str = Field(default_factory=lambda: os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/v1/gmail/callback"))
+    GOOGLE_REDIRECT_URI: str = Field(
+        default_factory=lambda: os.getenv(
+            "GOOGLE_REDIRECT_URI",
+            "https://inboxtooffer.onrender.com/api/v1/gmail/callback"
+            if (os.getenv("RENDER") or os.getenv("ENVIRONMENT") == "production")
+            else "http://localhost:8000/api/v1/gmail/callback",
+        )
+    )
 
     # AI / LLM
     LLM_PROVIDER: str = "gemini"
