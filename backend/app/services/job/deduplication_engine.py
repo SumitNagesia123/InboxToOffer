@@ -3,8 +3,13 @@ import re
 from typing import Any, List, Optional, Set, Tuple
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+# Optional sklearn import with graceful fallback
+try:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
 
 from app.core.logging import logger
 from app.schemas.job import DuplicateMatchDetail
@@ -145,7 +150,8 @@ def string_similarity(str1: str, str2: str) -> float:
 
 
 def calculate_description_similarity(desc1: Optional[str], desc2: Optional[str]) -> float:
-    """Calculates TF-IDF cosine similarity between two job descriptions."""
+    """Calculates TF-IDF cosine similarity between two job descriptions.
+    Falls back to token Jaccard similarity if sklearn is unavailable."""
     if not desc1 or not desc2:
         return 0.0
     t1 = desc1.strip()
@@ -153,13 +159,14 @@ def calculate_description_similarity(desc1: Optional[str], desc2: Optional[str])
     if len(t1) < 40 or len(t2) < 40:
         return token_jaccard_similarity(t1, t2)
     try:
-        vectorizer = TfidfVectorizer(stop_words="english", max_features=300)
-        tfidf_matrix = vectorizer.fit_transform([t1, t2])
-        sim = float(cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0])
-        return sim
+        if SKLEARN_AVAILABLE:
+            vectorizer = TfidfVectorizer(stop_words="english", max_features=300)
+            tfidf_matrix = vectorizer.fit_transform([t1, t2])
+            sim = float(cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0])
+            return sim
     except Exception as e:
         logger.debug("TF-IDF similarity failed: %s", str(e))
-        return token_jaccard_similarity(t1, t2)
+    return token_jaccard_similarity(t1, t2)
 
 
 class DuplicateDetectionEngine:

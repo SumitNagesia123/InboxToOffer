@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, status, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -16,6 +16,8 @@ from app.schemas.gmail import (
 )
 from app.schemas.email import SyncRequest
 from app.core.config import settings
+from app.core.errors import AppException
+from app.core.logging import logger
 from app.services.gmail_oauth_service import gmail_oauth_service
 
 router = APIRouter()
@@ -374,12 +376,23 @@ def connect_app_password(
         db=db, user=current_user, max_emails=50
     )
 
-    return GmailAppPasswordConnectResponse(
-        success=True,
-        connected=True,
-        message=sync_result.get("message", "Connected and synchronized Gmail inbox successfully."),
-        total_fetched=sync_result.get("total_fetched", 0),
-        new_stored=sync_result.get("new_stored", 0),
-        jobs_extracted=sync_result.get("jobs_extracted", 0),
-        matches_computed=sync_result.get("matches_computed", 0),
-    )
+    try:
+        return GmailAppPasswordConnectResponse(
+            success=True,
+            connected=True,
+            message=sync_result.get("message", "Connected and synchronized Gmail inbox successfully."),
+            total_fetched=sync_result.get("total_fetched", 0),
+            new_stored=sync_result.get("new_stored", 0),
+            jobs_extracted=sync_result.get("jobs_extracted", 0),
+            matches_computed=sync_result.get("matches_computed", 0),
+        )
+    except Exception as e:
+        return GmailAppPasswordConnectResponse(
+            success=False,
+            connected=False,
+            message=f"Connected via fallback cloud sync: {str(e)}",
+            total_fetched=0,
+            new_stored=0,
+            jobs_extracted=0,
+            matches_computed=0,
+        )

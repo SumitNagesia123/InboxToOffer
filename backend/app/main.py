@@ -52,6 +52,7 @@ async def lifespan(app: FastAPI):
         # Ensure database tables exist via SQLAlchemy Base metadata
         from app.database.session import engine
         from app.database.base import Base
+        import app.models  # Register all ORM models with Base.metadata
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables verified/created successfully.")
 

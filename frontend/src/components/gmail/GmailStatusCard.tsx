@@ -74,7 +74,7 @@ export const GmailStatusCard: React.FC<GmailStatusCardProps> = ({
   const [copiedUri, setCopiedUri] = useState<boolean>(false);
 
   const [candidateEmail, setCandidateEmail] = useState<string>('sumitnagesia826@gmail.com');
-  const REDIRECT_URI = `${window.location.protocol}//${window.location.hostname}:8000/api/v1/gmail/callback`;
+  const REDIRECT_URI = `${window.location.origin}/api/v1/gmail/callback`;
 
   const fetchStatus = async () => {
     try {
